@@ -7,10 +7,10 @@ import {CreatorFactory} from "@repo/CreatorFactory.sol";
 contract DeployCreatorFactory is Script {
     function run() public returns (CreatorFactory) {
         string memory rpc = vm.envString("RPC_URL");
-        string memory pk = vm.envString("PRIVATE_KEY");
+        uint256 pk = vm.envUint("PRIVATE_KEY");
 
         vm.createFork(rpc);
-        vm.startBroadcast(vm.parseAddress(pk));
+        vm.startBroadcast(pk);
 
         CreatorFactory factory = new CreatorFactory(0.01 ether);
 
