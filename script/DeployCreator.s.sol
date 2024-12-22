@@ -20,12 +20,7 @@ contract DeployCreator is Script {
         vm.createFork(rpc);
         vm.startBroadcast(vm.parseAddress(pk));
 
-        Creator creator = new Creator(
-            msg.sender,
-            name,
-            feePerDonation,
-            factory
-        );
+        Creator creator = new Creator(msg.sender, name, feePerDonation, factory);
 
         // Set additional information
         if (bytes(bio).length > 0) {
@@ -36,11 +31,8 @@ contract DeployCreator is Script {
         }
 
         // Add links if provided
-        require(
-            linkUrls.length == linkLabels.length,
-            "URLs and labels length mismatch"
-        );
-        for (uint i = 0; i < linkUrls.length; i++) {
+        require(linkUrls.length == linkLabels.length, "URLs and labels length mismatch");
+        for (uint256 i = 0; i < linkUrls.length; i++) {
             creator.addLink(linkUrls[i], linkLabels[i]);
         }
 

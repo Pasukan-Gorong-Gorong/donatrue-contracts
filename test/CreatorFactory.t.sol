@@ -14,17 +14,10 @@ contract CreatorFactoryTest is Test {
     address public creator2;
     uint96 public constant INITIAL_FEE = 0.01 ether;
 
-    event CreatorRegistered(
-        address indexed creatorAddress,
-        address contractAddress,
-        string name
-    );
+    event CreatorRegistered(address indexed creatorAddress, address contractAddress, string name);
     event FeeUpdated(uint96 newFee);
     event FeesWithdrawn(uint96 amount);
-    event CreatorExcessWithdrawn(
-        address indexed creatorContract,
-        uint96 amount
-    );
+    event CreatorExcessWithdrawn(address indexed creatorContract, uint96 amount);
 
     function setUp() public {
         owner = makeAddr("owner");
@@ -85,12 +78,7 @@ contract CreatorFactoryTest is Test {
 
     function test_UpdateFeePerDonation_RevertIfNotOwner() public {
         vm.prank(creator1);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Ownable.OwnableUnauthorizedAccount.selector,
-                creator1
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, creator1));
         factory.updateFeePerDonation(0.02 ether);
     }
 
