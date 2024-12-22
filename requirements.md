@@ -1,0 +1,40 @@
+- **////////////// ENTITIES //////////////**
+  - **creator**
+    - crypto_address (unique text as primary key)
+    - name
+  - **creator_links**
+    - id (int as primary key)
+    - name (text)
+    - url (text)
+  - **creator_actions**
+    - id (int as primary key)
+    - donates_id (int as foreign key ref to donates.id)
+    - action (enum [”accept”, “burn”])
+    - invoked_at (timestamp)
+  - **donates**
+    - id (int as primary key)
+    - creator_addr (text as foreign key)
+    - donatur_addr (text)
+    - amount (unsigned long)
+    - message (long rich text)
+    - created_at (timestamp)
+- **//////////// FEATURES /////////////**
+  - Donation History & Management
+    - Display donation history for each creator
+    - Implement accept/burn buttons for donations
+    - Track and display accept/burn history
+  - Creator Profile
+    - Show creator information (name, links, etc.)
+    - Display YouTube channel and other social media links
+    - Show donation management history (accepts/burns)
+  - Be a Creator
+    - Allow users to register as creators with their wallet
+    - Set up creator profile with name and social media links
+    - Verify creator identity through wallet signature
+  - Homepage/Donation Interface
+    - Display list of creator & minimal information
+    - Show ICP donation options
+    - Require message/note field for donations
+  - StreamLabs OBS Donation Overlay
+- **///////// FLOW CHART //////////**
+  https://miro.com/app/board/uXjVLNaDK0M=/?share_link_id=228711234361
