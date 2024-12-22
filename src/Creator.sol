@@ -15,9 +15,17 @@ contract Creator is Ownable, ReentrancyGuard, Pausable {
         bool isBurned;
     }
 
+    struct Link {
+        string url;
+        string label;
+    }
+
+    address public immutable factory;
     string public name;
     uint96 public feePerDonation;
-    address public immutable factory;
+    string public bio;
+    string public avatar;
+    Link[] public links;
     Donation[] private donations;
     uint96 private totalPendingAmount;
 
@@ -44,11 +52,11 @@ contract Creator is Ownable, ReentrancyGuard, Pausable {
     }
 
     constructor(
-        address initialOwner,
+        address _owner,
         string memory _name,
         uint96 _feePerDonation,
         address _factory
-    ) Ownable(initialOwner) {
+    ) Ownable(_owner) {
         name = _name;
         feePerDonation = _feePerDonation;
         factory = _factory;
@@ -203,5 +211,26 @@ contract Creator is Ownable, ReentrancyGuard, Pausable {
 
     function unpause() external onlyFactory {
         _unpause();
+    }
+
+    function updateBio(string memory _bio) external onlyOwner {
+        bio = _bio;
+    }
+
+    function updateAvatar(string memory _avatar) external onlyOwner {
+        avatar = _avatar;
+    }
+
+    function addLink(
+        string memory url,
+        string memory label
+    ) external onlyOwner {
+        links.push(Link({url: url, label: label}));
+    }
+
+    function removeLink(uint256 index) external onlyOwner {
+        require(index < links.length, "Invalid link index");
+        links[index] = links[links.length - 1];
+        links.pop();
     }
 }
