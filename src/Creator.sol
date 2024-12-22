@@ -29,12 +29,7 @@ contract Creator is Ownable, ReentrancyGuard, Pausable {
     Donation[] private donations;
     uint96 private totalPendingAmount;
 
-    event DonationReceived(
-        address indexed donator,
-        uint96 amount,
-        string message,
-        uint32 timestamp
-    );
+    event DonationReceived(address indexed donator, uint96 amount, string message, uint32 timestamp);
     event DonationAccepted(uint256 indexed donationId);
     event DonationBurned(uint256 indexed donationId);
     event ExcessWithdrawn(uint96 amount);
@@ -51,20 +46,13 @@ contract Creator is Ownable, ReentrancyGuard, Pausable {
         _;
     }
 
-    constructor(
-        address _owner,
-        string memory _name,
-        uint96 _feePerDonation,
-        address _factory
-    ) Ownable(_owner) {
+    constructor(address _owner, string memory _name, uint96 _feePerDonation, address _factory) Ownable(_owner) {
         name = _name;
         feePerDonation = _feePerDonation;
         factory = _factory;
     }
 
-    function donate(
-        string calldata message
-    ) external payable nonReentrant whenNotPaused {
+    function donate(string calldata message) external payable nonReentrant whenNotPaused {
         if (msg.value <= feePerDonation) revert("Insufficient donation");
         if (msg.value > type(uint96).max) revert("Donation too large");
 
@@ -83,17 +71,10 @@ contract Creator is Ownable, ReentrancyGuard, Pausable {
             );
         }
 
-        emit DonationReceived(
-            msg.sender,
-            amount,
-            message,
-            uint32(block.timestamp)
-        );
+        emit DonationReceived(msg.sender, amount, message, uint32(block.timestamp));
     }
 
-    function acceptDonation(
-        uint256 donationId
-    ) external onlyOwner nonReentrant whenNotPaused {
+    function acceptDonation(uint256 donationId) external onlyOwner nonReentrant whenNotPaused {
         if (donationId >= donations.length) revert("Invalid donation ID");
 
         Donation storage donation = donations[donationId];
@@ -113,19 +94,17 @@ contract Creator is Ownable, ReentrancyGuard, Pausable {
         }
 
         // Transfer fee to factory
-        (bool feeSuccess, ) = factory.call{value: fee}("");
+        (bool feeSuccess,) = factory.call{value: fee}("");
         if (!feeSuccess) revert("Fee transfer failed");
 
         // Transfer remaining amount to creator
-        (bool success, ) = owner().call{value: creatorAmount}("");
+        (bool success,) = owner().call{value: creatorAmount}("");
         if (!success) revert("Transfer failed");
 
         emit DonationAccepted(donationId);
     }
 
-    function burnDonation(
-        uint256 donationId
-    ) external onlyOwner nonReentrant whenNotPaused {
+    function burnDonation(uint256 donationId) external onlyOwner nonReentrant whenNotPaused {
         if (donationId >= donations.length) revert("Invalid donation ID");
 
         Donation storage donation = donations[donationId];
@@ -145,11 +124,11 @@ contract Creator is Ownable, ReentrancyGuard, Pausable {
         }
 
         // Transfer fee to factory
-        (bool feeSuccess, ) = factory.call{value: fee}("");
+        (bool feeSuccess,) = factory.call{value: fee}("");
         if (!feeSuccess) revert("Fee transfer failed");
 
         // Return remaining amount to donator
-        (bool success, ) = donation.donator.call{value: returnAmount}("");
+        (bool success,) = donation.donator.call{value: returnAmount}("");
         if (!success) revert("Return failed");
 
         emit DonationBurned(donationId);
@@ -159,7 +138,7 @@ contract Creator is Ownable, ReentrancyGuard, Pausable {
         uint96 contractBalance = uint96(address(this).balance);
         uint96 excessAmount = contractBalance - totalPendingAmount;
         if (excessAmount > 0) {
-            (bool success, ) = msg.sender.call{value: excessAmount}("");
+            (bool success,) = msg.sender.call{value: excessAmount}("");
             if (!success) revert("Transfer failed");
             emit ExcessWithdrawn(excessAmount);
         }
@@ -169,9 +148,7 @@ contract Creator is Ownable, ReentrancyGuard, Pausable {
         return donations.length;
     }
 
-    function getDonation(
-        uint256 donationId
-    )
+    function getDonation(uint256 donationId)
         external
         view
         returns (
@@ -195,11 +172,7 @@ contract Creator is Ownable, ReentrancyGuard, Pausable {
         );
     }
 
-    function getContractBalance()
-        external
-        view
-        returns (uint96 balance, uint96 pendingAmount)
-    {
+    function getContractBalance() external view returns (uint96 balance, uint96 pendingAmount) {
         return (uint96(address(this).balance), totalPendingAmount);
     }
 
@@ -223,10 +196,7 @@ contract Creator is Ownable, ReentrancyGuard, Pausable {
         avatar = _avatar;
     }
 
-    function addLink(
-        string memory url,
-        string memory label
-    ) external onlyOwner {
+    function addLink(string memory url, string memory label) external onlyOwner {
         links.push(Link({url: url, label: label}));
     }
 
