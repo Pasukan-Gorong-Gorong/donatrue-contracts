@@ -21,12 +21,7 @@ contract DeployCreator is Script {
         vm.createFork(rpc);
         vm.startBroadcast(pk);
 
-        Creator creator = new Creator(
-            msg.sender,
-            name,
-            feePerDonation,
-            factory
-        );
+        Creator creator = new Creator(msg.sender, name, feePerDonation, factory);
 
         // Set additional information
         if (bytes(bio).length > 0) {
@@ -40,10 +35,7 @@ contract DeployCreator is Script {
         if (bytes(linkUrls).length > 0 && bytes(linkLabels).length > 0) {
             string[] memory urls = _split(linkUrls, ",");
             string[] memory labels = _split(linkLabels, ",");
-            require(
-                urls.length == labels.length,
-                "URLs and labels length mismatch"
-            );
+            require(urls.length == labels.length, "URLs and labels length mismatch");
             for (uint256 i = 0; i < urls.length; i++) {
                 creator.addLink(urls[i], labels[i]);
             }
@@ -53,26 +45,21 @@ contract DeployCreator is Script {
         return creator;
     }
 
-    function _split(
-        string memory str,
-        string memory delimiter
-    ) internal pure returns (string[] memory) {
-        uint count = 1;
-        for (uint i = 0; i < bytes(str).length; i++) {
+    function _split(string memory str, string memory delimiter) internal pure returns (string[] memory) {
+        uint256 count = 1;
+        for (uint256 i = 0; i < bytes(str).length; i++) {
             if (bytes(str)[i] == bytes(delimiter)[0]) count++;
         }
 
         string[] memory parts = new string[](count);
-        uint start = 0;
-        uint partIndex = 0;
+        uint256 start = 0;
+        uint256 partIndex = 0;
 
-        for (uint i = 0; i <= bytes(str).length; i++) {
-            if (
-                i == bytes(str).length || bytes(str)[i] == bytes(delimiter)[0]
-            ) {
-                uint length = i - start;
+        for (uint256 i = 0; i <= bytes(str).length; i++) {
+            if (i == bytes(str).length || bytes(str)[i] == bytes(delimiter)[0]) {
+                uint256 length = i - start;
                 bytes memory part = new bytes(length);
-                for (uint j = 0; j < length; j++) {
+                for (uint256 j = 0; j < length; j++) {
                     part[j] = bytes(str)[start + j];
                 }
                 parts[partIndex] = string(part);
