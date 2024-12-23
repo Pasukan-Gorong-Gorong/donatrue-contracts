@@ -16,20 +16,9 @@ contract DeployCreatorFactory is Script {
 
         // Deploy and verify Creator implementation first
         Link[] memory emptyLinks = new Link[](0);
-        Creator creatorImpl = new Creator(
-            address(1),
-            0,
-            address(1),
-            "",
-            "",
-            "",
-            emptyLinks
-        );
+        Creator creatorImpl = new Creator(address(1), 0, address(1), "", "", "", emptyLinks);
 
-        console.log(
-            "Creator implementation deployed at:",
-            address(creatorImpl)
-        );
+        console.log("Creator implementation deployed at:", address(creatorImpl));
 
         // Deploy factory with initial fee
         CreatorFactory factory = new CreatorFactory(0.01 ether);

@@ -15,12 +15,7 @@ contract CreatorTest is Test {
     address public donator2;
     uint96 public constant INITIAL_FEE = 0.01 ether;
 
-    event DonationReceived(
-        address indexed donator,
-        uint96 amount,
-        string message,
-        uint32 timestamp
-    );
+    event DonationReceived(address indexed donator, uint96 amount, string message, uint32 timestamp);
     event DonationAccepted(uint256 indexed donationId);
     event DonationBurned(uint256 indexed donationId);
     event ExcessWithdrawn(uint96 amount);
@@ -61,24 +56,13 @@ contract CreatorTest is Test {
         vm.deal(donator1, donationAmount);
         vm.prank(donator1);
         vm.expectEmit(true, true, true, true);
-        emit DonationReceived(
-            donator1,
-            donationAmount,
-            message,
-            uint32(block.timestamp)
-        );
+        emit DonationReceived(donator1, donationAmount, message, uint32(block.timestamp));
         creator.donate{value: donationAmount}(message);
 
         assertEq(address(creator).balance, donationAmount);
 
-        (
-            address donator,
-            uint96 amount,
-            string memory storedMessage,
-            ,
-            bool isAccepted,
-            bool isBurned
-        ) = creator.getDonation(0);
+        (address donator, uint96 amount, string memory storedMessage,, bool isAccepted, bool isBurned) =
+            creator.getDonation(0);
         assertEq(donator, donator1);
         assertEq(amount, donationAmount);
         assertEq(storedMessage, message);
@@ -112,13 +96,10 @@ contract CreatorTest is Test {
         // Verify balances
         assertEq(address(creator).balance, 0);
         assertEq(address(factory).balance, initialFactoryBalance + INITIAL_FEE);
-        assertEq(
-            creatorOwner.balance,
-            initialCreatorBalance + donationAmount - INITIAL_FEE
-        );
+        assertEq(creatorOwner.balance, initialCreatorBalance + donationAmount - INITIAL_FEE);
 
         // Verify donation state
-        (, , , , bool isAccepted, bool isBurned) = creator.getDonation(0);
+        (,,,, bool isAccepted, bool isBurned) = creator.getDonation(0);
         assertTrue(isAccepted);
         assertFalse(isBurned);
     }
@@ -142,13 +123,10 @@ contract CreatorTest is Test {
         // Verify balances
         assertEq(address(creator).balance, 0);
         assertEq(address(factory).balance, initialFactoryBalance + INITIAL_FEE);
-        assertEq(
-            donator1.balance,
-            initialDonatorBalance + donationAmount - INITIAL_FEE
-        );
+        assertEq(donator1.balance, initialDonatorBalance + donationAmount - INITIAL_FEE);
 
         // Verify donation state
-        (, , , , bool isAccepted, bool isBurned) = creator.getDonation(0);
+        (,,,, bool isAccepted, bool isBurned) = creator.getDonation(0);
         assertFalse(isAccepted);
         assertTrue(isBurned);
     }
@@ -205,8 +183,7 @@ contract CreatorTest is Test {
         creator.donate{value: donationAmount}("Other donation");
 
         // Test pagination for donator1
-        (Creator.Donation[] memory donations, uint256 total) = creator
-            .getDonationsByDonator(donator1, 0, 2);
+        (Creator.Donation[] memory donations, uint256 total) = creator.getDonationsByDonator(donator1, 0, 2);
         assertEq(total, 3); // Total donations by donator1
         assertEq(donations.length, 2); // Limited to 2 items
         assertEq(donations[0].message, "First donation");
@@ -256,8 +233,7 @@ contract CreatorTest is Test {
         vm.stopPrank();
 
         // Test pagination
-        (Creator.Donation[] memory donations, uint256 total) = creator
-            .getDonations(0, 1);
+        (Creator.Donation[] memory donations, uint256 total) = creator.getDonations(0, 1);
         assertEq(total, 2);
         assertEq(donations.length, 1);
         assertEq(donations[0].message, "First donation");

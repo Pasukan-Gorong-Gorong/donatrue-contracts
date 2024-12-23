@@ -14,17 +14,10 @@ contract CreatorFactoryTest is Test {
     address public creator2;
     uint96 public constant INITIAL_FEE = 0.01 ether;
 
-    event CreatorRegistered(
-        address indexed creatorAddress,
-        address contractAddress,
-        string name
-    );
+    event CreatorRegistered(address indexed creatorAddress, address contractAddress, string name);
     event FeeUpdated(uint96 newFee);
     event FeesWithdrawn(uint96 amount);
-    event CreatorExcessWithdrawn(
-        address indexed creatorContract,
-        uint96 amount
-    );
+    event CreatorExcessWithdrawn(address indexed creatorContract, uint96 amount);
 
     function setUp() public {
         owner = makeAddr("owner");
@@ -88,12 +81,7 @@ contract CreatorFactoryTest is Test {
 
     function test_UpdateFeePerDonation_RevertIfNotOwner() public {
         vm.prank(creator1);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Ownable.OwnableUnauthorizedAccount.selector,
-                creator1
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, creator1));
         factory.updateFeePerDonation(0.02 ether);
     }
 
@@ -124,9 +112,7 @@ contract CreatorFactoryTest is Test {
 
         // Make donation that will generate fees
         vm.deal(address(this), 1 ether);
-        Creator(payable(creatorContract)).donate{value: 1 ether}(
-            "Test donation"
-        );
+        Creator(payable(creatorContract)).donate{value: 1 ether}("Test donation");
 
         // Accept donation to transfer fee to factory
         vm.prank(creator1);
@@ -188,22 +174,14 @@ contract CreatorFactoryTest is Test {
         vm.deal(donator, 5 ether);
 
         vm.startPrank(donator);
-        Creator(payable(creator1Contract)).donate{value: 1 ether}(
-            "Donation to Creator1 - 1"
-        );
-        Creator(payable(creator1Contract)).donate{value: 1 ether}(
-            "Donation to Creator1 - 2"
-        );
-        Creator(payable(creator2Contract)).donate{value: 1 ether}(
-            "Donation to Creator2"
-        );
+        Creator(payable(creator1Contract)).donate{value: 1 ether}("Donation to Creator1 - 1");
+        Creator(payable(creator1Contract)).donate{value: 1 ether}("Donation to Creator1 - 2");
+        Creator(payable(creator2Contract)).donate{value: 1 ether}("Donation to Creator2");
         vm.stopPrank();
 
         // Test pagination across all creators
-        (
-            CreatorFactory.DonationWithCreator[] memory donations,
-            uint256 total
-        ) = factory.getDonationsByDonator(donator, 0, 2);
+        (CreatorFactory.DonationWithCreator[] memory donations, uint256 total) =
+            factory.getDonationsByDonator(donator, 0, 2);
 
         assertEq(total, 3);
         assertEq(donations.length, 2);
