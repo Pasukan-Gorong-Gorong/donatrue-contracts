@@ -25,10 +25,18 @@ contract CreatorFactory is Ownable, Pausable {
         feePerDonation = _feePerDonation;
     }
 
-    function registerCreator(string calldata name) external whenNotPaused {
+    function registerCreator(string calldata name, string calldata bio, string calldata avatar, Link[] calldata links)
+        external
+        whenNotPaused
+    {
         if (creatorContracts[msg.sender] != address(0)) revert CreatorExists();
 
-        Creator newCreator = new Creator(msg.sender, name, feePerDonation, address(this));
+        Link[] memory linksArray = new Link[](links.length);
+        for (uint256 i = 0; i < links.length; i++) {
+            linksArray[i] = links[i];
+        }
+
+        Creator newCreator = new Creator(msg.sender, feePerDonation, address(this), name, bio, avatar, linksArray);
 
         creatorContracts[msg.sender] = address(newCreator);
         creators.push(address(newCreator));

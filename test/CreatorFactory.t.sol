@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {Test, console} from "@forge-std/Test.sol";
 import {CreatorFactory} from "@repo/CreatorFactory.sol";
-import {Creator} from "@repo/Creator.sol";
+import {Creator, Link} from "@repo/Creator.sol";
 import {Ownable} from "@openzeppelin-contracts/access/Ownable.sol";
 import {Pausable} from "@openzeppelin-contracts/utils/Pausable.sol";
 
@@ -37,7 +37,8 @@ contract CreatorFactoryTest is Test {
     function test_RegisterCreator() public {
         string memory creatorName = "Creator1";
         vm.prank(creator1);
-        factory.registerCreator(creatorName);
+        Link[] memory emptyLinks = new Link[](0);
+        factory.registerCreator(creatorName, "", "", emptyLinks);
 
         address creatorContract = factory.creatorContracts(creator1);
         assertEq(factory.creatorCount(), 1);
@@ -50,10 +51,11 @@ contract CreatorFactoryTest is Test {
 
     function test_RegisterCreator_RevertIfAlreadyRegistered() public {
         vm.startPrank(creator1);
-        factory.registerCreator("Creator1");
+        Link[] memory emptyLinks = new Link[](0);
+        factory.registerCreator("Creator1", "", "", emptyLinks);
 
         vm.expectRevert(CreatorFactory.CreatorExists.selector);
-        factory.registerCreator("Creator1Again");
+        factory.registerCreator("Creator1Again", "", "", emptyLinks);
         vm.stopPrank();
     }
 
@@ -62,7 +64,8 @@ contract CreatorFactoryTest is Test {
 
         // Register a creator first
         vm.prank(creator1);
-        factory.registerCreator("Creator1");
+        Link[] memory emptyLinks = new Link[](0);
+        factory.registerCreator("Creator1", "", "", emptyLinks);
 
         vm.prank(owner);
         vm.expectEmit(true, true, true, true);
@@ -89,20 +92,22 @@ contract CreatorFactoryTest is Test {
 
         vm.prank(creator1);
         vm.expectRevert(Pausable.EnforcedPause.selector);
-        factory.registerCreator("Creator1");
+        Link[] memory emptyLinks = new Link[](0);
+        factory.registerCreator("Creator1", "", "", emptyLinks);
 
         vm.startPrank(owner);
         factory.unpause();
         vm.stopPrank();
 
         vm.prank(creator1);
-        factory.registerCreator("Creator1"); // Should work now
+        factory.registerCreator("Creator1", "", "", emptyLinks); // Should work now
     }
 
     function test_WithdrawFees() public {
         // Setup: register creator and make donation
         vm.prank(creator1);
-        factory.registerCreator("Creator1");
+        Link[] memory emptyLinks = new Link[](0);
+        factory.registerCreator("Creator1", "", "", emptyLinks);
         address creatorContract = factory.creatorContracts(creator1);
 
         // Make donation that will generate fees

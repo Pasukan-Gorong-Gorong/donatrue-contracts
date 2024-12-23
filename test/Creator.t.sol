@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {Test, console} from "@forge-std/Test.sol";
-import {Creator} from "@repo/Creator.sol";
+import {Creator, Link} from "@repo/Creator.sol";
 import {CreatorFactory} from "@repo/CreatorFactory.sol";
 import {Pausable} from "@openzeppelin-contracts/utils/Pausable.sol";
 
@@ -30,7 +30,16 @@ contract CreatorTest is Test {
         factory = new CreatorFactory(INITIAL_FEE);
 
         vm.prank(creatorOwner);
-        creator = new Creator(creatorOwner, "TestCreator", INITIAL_FEE, address(factory));
+        Link[] memory emptyLinks = new Link[](0);
+        creator = new Creator(
+            creatorOwner,
+            INITIAL_FEE,
+            address(factory),
+            "TestCreator",
+            "", // empty bio
+            "", // empty avatar
+            emptyLinks
+        );
     }
 
     function test_Constructor() public {

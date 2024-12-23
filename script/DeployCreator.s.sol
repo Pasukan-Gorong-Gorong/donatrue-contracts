@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Script} from "@forge-std/Script.sol";
-import {Creator} from "@repo/Creator.sol";
+import {Creator, Link} from "@repo/Creator.sol";
 
 contract DeployCreator is Script {
     function run() public returns (Creator) {
@@ -21,25 +21,21 @@ contract DeployCreator is Script {
         vm.createFork(rpc);
         vm.startBroadcast(pk);
 
-        Creator creator = new Creator(msg.sender, name, feePerDonation, factory);
-
-        // Set additional information
-        if (bytes(bio).length > 0) {
-            creator.updateBio(bio);
-        }
-        if (bytes(avatar).length > 0) {
-            creator.updateAvatar(avatar);
-        }
-
-        // Add links if provided
+        // Create links array
+        Link[] memory links;
         if (bytes(linkUrls).length > 0 && bytes(linkLabels).length > 0) {
             string[] memory urls = _split(linkUrls, ",");
             string[] memory labels = _split(linkLabels, ",");
             require(urls.length == labels.length, "URLs and labels length mismatch");
+            links = new Link[](urls.length);
             for (uint256 i = 0; i < urls.length; i++) {
-                creator.addLink(urls[i], labels[i]);
+                links[i] = Link({url: urls[i], label: labels[i]});
             }
+        } else {
+            links = new Link[](0);
         }
+
+        Creator creator = new Creator(msg.sender, feePerDonation, factory, name, bio, avatar, links);
 
         vm.stopBroadcast();
         return creator;

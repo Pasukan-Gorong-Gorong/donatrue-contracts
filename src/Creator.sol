@@ -5,6 +5,11 @@ import "@openzeppelin-contracts/access/Ownable.sol";
 import "@openzeppelin-contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin-contracts/utils/Pausable.sol";
 
+struct Link {
+    string url;
+    string label;
+}
+
 contract Creator is Ownable, ReentrancyGuard, Pausable {
     struct Donation {
         address donator;
@@ -13,11 +18,6 @@ contract Creator is Ownable, ReentrancyGuard, Pausable {
         uint32 timestamp;
         bool isAccepted;
         bool isBurned;
-    }
-
-    struct Link {
-        string url;
-        string label;
     }
 
     address public immutable factory;
@@ -46,10 +46,21 @@ contract Creator is Ownable, ReentrancyGuard, Pausable {
         _;
     }
 
-    constructor(address _owner, string memory _name, uint96 _feePerDonation, address _factory) Ownable(_owner) {
+    constructor(
+        address _owner,
+        uint96 _feePerDonation,
+        address _factory,
+        string memory _name,
+        string memory _bio,
+        string memory _avatar,
+        Link[] memory _links
+    ) Ownable(_owner) {
         name = _name;
+        bio = _bio;
+        avatar = _avatar;
         feePerDonation = _feePerDonation;
         factory = _factory;
+        links = _links;
     }
 
     function donate(string calldata message) external payable nonReentrant whenNotPaused {

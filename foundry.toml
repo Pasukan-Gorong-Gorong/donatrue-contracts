@@ -2,6 +2,7 @@
 src = "src"
 out = "out"
 libs = ["dependencies"]
+via_ir = true
 
 [dependencies]
 forge-std = "1.9.5"
@@ -14,3 +15,6 @@ sepolia = "${RPC_URL}"
 
 [etherscan]
 sepolia = { key = "${ETHERSCAN_SEPOLIA_KEY}" }
+
+[fmt]
+number_underscore = "thousands"
