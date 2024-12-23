@@ -26,7 +26,7 @@ contract Creator is Ownable, ReentrancyGuard, Pausable {
     string public bio;
     string public avatar;
     Link[] public links;
-    Donation[] private donations;
+    Donation[] public donations;
     uint96 private totalPendingAmount;
 
     event DonationReceived(address indexed donator, uint96 amount, string message, uint32 timestamp);

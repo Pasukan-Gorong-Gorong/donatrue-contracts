@@ -24,7 +24,7 @@ help:
 deploy-factory:
 	@if [ -z "$(RPC_URL)" ]; then echo "RPC_URL is required"; exit 1; fi
 	@if [ -z "$(PRIVATE_KEY)" ]; then echo "PRIVATE_KEY is required"; exit 1; fi
-	forge script script/DeployCreatorFactory.s.sol:DeployCreatorFactory --rpc-url $(RPC_URL) --private-key $(PRIVATE_KEY) --broadcast -vvvv
+	forge script script/DeployCreatorFactory.s.sol:DeployCreatorFactory --rpc-url $(RPC_URL) --private-key $(PRIVATE_KEY) --broadcast --verify -vvvv
 
 # Deploy Creator
 deploy-creator:
@@ -32,4 +32,4 @@ deploy-creator:
 	@if [ -z "$(PRIVATE_KEY)" ]; then echo "PRIVATE_KEY is required"; exit 1; fi
 	@if [ -z "$(FACTORY_ADDRESS)" ]; then echo "FACTORY_ADDRESS is required"; exit 1; fi
 	@if [ -z "$(CREATOR_NAME)" ]; then echo "CREATOR_NAME is required"; exit 1; fi
-	forge script script/DeployCreator.s.sol:DeployCreator --rpc-url $(RPC_URL) --private-key $(PRIVATE_KEY) --broadcast -vvvv
+	forge script script/DeployCreator.s.sol:DeployCreator --rpc-url $(RPC_URL) --private-key $(PRIVATE_KEY) --broadcast --verify -vvvv

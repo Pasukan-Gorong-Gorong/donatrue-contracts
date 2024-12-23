@@ -11,3 +11,6 @@ forge-std = "1.9.5"
 
 [rpc_endpoints]
 sepolia = "${RPC_URL}"
+
+[etherscan]
+sepolia = { key = "${ETHERSCAN_SEPOLIA_KEY}" }
