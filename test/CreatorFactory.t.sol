@@ -76,7 +76,7 @@ contract CreatorFactoryTest is Test {
 
         // Check if creator contract fee was updated
         address creatorContract = factory.creatorContracts(creator1);
-        assertEq(Creator(creatorContract).feePerDonation(), newFee);
+        assertEq(Creator(payable(creatorContract)).feePerDonation(), newFee);
     }
 
     function test_UpdateFeePerDonation_RevertIfNotOwner() public {
@@ -112,11 +112,11 @@ contract CreatorFactoryTest is Test {
 
         // Make donation that will generate fees
         vm.deal(address(this), 1 ether);
-        Creator(creatorContract).donate{value: 1 ether}("Test donation");
+        Creator(payable(creatorContract)).donate{value: 1 ether}("Test donation");
 
         // Accept donation to transfer fee to factory
         vm.prank(creator1);
-        Creator(creatorContract).acceptDonation(0);
+        Creator(payable(creatorContract)).acceptDonation(0);
 
         uint256 initialBalance = owner.balance;
 
@@ -131,6 +131,70 @@ contract CreatorFactoryTest is Test {
         vm.prank(owner);
         vm.expectRevert(CreatorFactory.NoFeesToWithdraw.selector);
         factory.withdrawFees();
+    }
+
+    function test_GetCreators() public {
+        // Register multiple creators
+        vm.startPrank(creator1);
+        Link[] memory emptyLinks = new Link[](0);
+        factory.registerCreator("Creator1", "", "", emptyLinks);
+        vm.stopPrank();
+
+        vm.startPrank(creator2);
+        factory.registerCreator("Creator2", "", "", emptyLinks);
+        vm.stopPrank();
+
+        // Test pagination
+        (address[] memory creators, uint256 total) = factory.getCreators(0, 1);
+        assertEq(total, 2);
+        assertEq(creators.length, 1);
+        assertEq(creators[0], factory.creatorContracts(creator1));
+
+        // Get next page
+        (creators, total) = factory.getCreators(1, 1);
+        assertEq(creators.length, 1);
+        assertEq(creators[0], factory.creatorContracts(creator2));
+    }
+
+    function test_GetDonationsByDonator() public {
+        // Setup creators and donations
+        vm.startPrank(creator1);
+        Link[] memory emptyLinks = new Link[](0);
+        factory.registerCreator("Creator1", "", "", emptyLinks);
+        address creator1Contract = factory.creatorContracts(creator1);
+        vm.stopPrank();
+
+        vm.startPrank(creator2);
+        factory.registerCreator("Creator2", "", "", emptyLinks);
+        address creator2Contract = factory.creatorContracts(creator2);
+        vm.stopPrank();
+
+        // Make donations to both creators
+        address donator = address(0x123);
+        vm.deal(donator, 5 ether);
+
+        vm.startPrank(donator);
+        Creator(payable(creator1Contract)).donate{value: 1 ether}("Donation to Creator1 - 1");
+        Creator(payable(creator1Contract)).donate{value: 1 ether}("Donation to Creator1 - 2");
+        Creator(payable(creator2Contract)).donate{value: 1 ether}("Donation to Creator2");
+        vm.stopPrank();
+
+        // Test pagination across all creators
+        (CreatorFactory.DonationWithCreator[] memory donations, uint256 total) =
+            factory.getDonationsByDonator(donator, 0, 2);
+
+        assertEq(total, 3);
+        assertEq(donations.length, 2);
+        assertEq(donations[0].creator, creator1Contract);
+        assertEq(donations[0].message, "Donation to Creator1 - 1");
+        assertEq(donations[1].creator, creator1Contract);
+        assertEq(donations[1].message, "Donation to Creator1 - 2");
+
+        // Get next page
+        (donations, total) = factory.getDonationsByDonator(donator, 2, 2);
+        assertEq(donations.length, 1);
+        assertEq(donations[0].creator, creator2Contract);
+        assertEq(donations[0].message, "Donation to Creator2");
     }
 
     receive() external payable {}

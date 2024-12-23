@@ -165,5 +165,84 @@ contract CreatorTest is Test {
         creator.donate{value: 1 ether}("Test donation"); // Should work now
     }
 
+    function test_GetDonationsByDonator() public {
+        // Setup multiple donations from different donators
+        uint96 donationAmount = 1 ether;
+
+        // Donator 1 makes 3 donations
+        vm.deal(donator1, donationAmount * 3);
+        vm.startPrank(donator1);
+        creator.donate{value: donationAmount}("First donation");
+        creator.donate{value: donationAmount}("Second donation");
+        creator.donate{value: donationAmount}("Third donation");
+        vm.stopPrank();
+
+        // Donator 2 makes 1 donation
+        vm.deal(donator2, donationAmount);
+        vm.prank(donator2);
+        creator.donate{value: donationAmount}("Other donation");
+
+        // Test pagination for donator1
+        (Creator.Donation[] memory donations, uint256 total) = creator.getDonationsByDonator(donator1, 0, 2);
+        assertEq(total, 3); // Total donations by donator1
+        assertEq(donations.length, 2); // Limited to 2 items
+        assertEq(donations[0].message, "First donation");
+        assertEq(donations[1].message, "Second donation");
+
+        // Get next page
+        (donations, total) = creator.getDonationsByDonator(donator1, 2, 2);
+        assertEq(donations.length, 1);
+        assertEq(donations[0].message, "Third donation");
+
+        // Test donator2's donations
+        (donations, total) = creator.getDonationsByDonator(donator2, 0, 10);
+        assertEq(total, 1);
+        assertEq(donations.length, 1);
+        assertEq(donations[0].message, "Other donation");
+    }
+
+    function test_GetLinks() public {
+        // Add multiple links
+        vm.startPrank(creatorOwner);
+        creator.addLink("https://twitter.com", "Twitter");
+        creator.addLink("https://github.com", "GitHub");
+        creator.addLink("https://discord.com", "Discord");
+        vm.stopPrank();
+
+        // Test pagination
+        (Link[] memory links, uint256 total) = creator.getLinks(0, 2);
+        assertEq(total, 3);
+        assertEq(links.length, 2);
+        assertEq(links[0].url, "https://twitter.com");
+        assertEq(links[1].url, "https://github.com");
+
+        // Get next page
+        (links, total) = creator.getLinks(2, 2);
+        assertEq(links.length, 1);
+        assertEq(links[0].url, "https://discord.com");
+    }
+
+    function test_GetDonations() public {
+        // Setup multiple donations
+        uint96 donationAmount = 1 ether;
+
+        vm.deal(donator1, donationAmount * 2);
+        vm.startPrank(donator1);
+        creator.donate{value: donationAmount}("First donation");
+        creator.donate{value: donationAmount}("Second donation");
+        vm.stopPrank();
+
+        // Test pagination
+        (Creator.Donation[] memory donations, uint256 total) = creator.getDonations(0, 1);
+        assertEq(total, 2);
+        assertEq(donations.length, 1);
+        assertEq(donations[0].message, "First donation");
+
+        // Get next page
+        (donations, total) = creator.getDonations(1, 1);
+        assertEq(donations.length, 1);
+        assertEq(donations[0].message, "Second donation");
+    }
+
     receive() external payable {}
 }

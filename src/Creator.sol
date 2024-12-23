@@ -216,4 +216,87 @@ contract Creator is Ownable, ReentrancyGuard, Pausable {
         links[index] = links[links.length - 1];
         links.pop();
     }
+
+    function getLinks(uint256 offset, uint256 limit) external view returns (Link[] memory, uint256) {
+        uint256 total = links.length;
+        if (offset >= total) {
+            return (new Link[](0), total);
+        }
+
+        uint256 size = total - offset;
+        if (size > limit) {
+            size = limit;
+        }
+
+        Link[] memory result = new Link[](size);
+        for (uint256 i = 0; i < size; i++) {
+            result[i] = links[offset + i];
+        }
+
+        return (result, total);
+    }
+
+    function getDonations(uint256 offset, uint256 limit) external view returns (Donation[] memory, uint256) {
+        uint256 total = donations.length;
+        if (offset >= total) {
+            return (new Donation[](0), total);
+        }
+
+        uint256 size = total - offset;
+        if (size > limit) {
+            size = limit;
+        }
+
+        Donation[] memory result = new Donation[](size);
+        for (uint256 i = 0; i < size; i++) {
+            result[i] = donations[offset + i];
+        }
+
+        return (result, total);
+    }
+
+    function getDonationsByDonator(address donator, uint256 offset, uint256 limit)
+        external
+        view
+        returns (Donation[] memory result, uint256 total)
+    {
+        // First count total donations by this donator
+        uint256 count = 0;
+        for (uint256 i = 0; i < donations.length; i++) {
+            if (donations[i].donator == donator) {
+                count++;
+            }
+        }
+
+        if (count == 0 || offset >= count) {
+            return (new Donation[](0), count);
+        }
+
+        // Calculate size of return array
+        uint256 size = count - offset;
+        if (size > limit) {
+            size = limit;
+        }
+
+        // Create result array
+        result = new Donation[](size);
+        uint256 resultIndex = 0;
+        uint256 skipped = 0;
+
+        // Fill result array
+        for (uint256 i = 0; i < donations.length && resultIndex < size; i++) {
+            if (donations[i].donator == donator) {
+                if (skipped < offset) {
+                    skipped++;
+                    continue;
+                }
+                result[resultIndex] = donations[i];
+                resultIndex++;
+            }
+        }
+
+        return (result, count);
+    }
+
+    receive() external payable {}
 }

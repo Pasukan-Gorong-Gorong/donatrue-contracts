@@ -53,7 +53,7 @@ contract CreatorFactory is Ownable, Pausable {
 
         uint256 length = creators.length;
         for (uint256 i = 0; i < length;) {
-            Creator(creators[i]).updateFeePerDonation(_feePerDonation);
+            Creator(payable(creators[i])).updateFeePerDonation(_feePerDonation);
             unchecked {
                 ++i;
             }
@@ -64,13 +64,13 @@ contract CreatorFactory is Ownable, Pausable {
         address creatorContract = creatorContracts[creatorAddress];
         if (creatorContract == address(0)) revert CreatorNotFound();
 
-        Creator(creatorContract).withdrawExcessFunds();
+        Creator(payable(creatorContract)).withdrawExcessFunds();
     }
 
     function withdrawAllCreatorsExcess() external onlyOwner {
         uint256 length = creators.length;
         for (uint256 i = 0; i < length;) {
-            Creator(creators[i]).withdrawExcessFunds();
+            Creator(payable(creators[i])).withdrawExcessFunds();
             unchecked {
                 ++i;
             }
@@ -88,19 +88,19 @@ contract CreatorFactory is Ownable, Pausable {
     function getCreatorBalance(address creatorAddress) external view returns (uint96 balance, uint96 pendingAmount) {
         address creatorContract = creatorContracts[creatorAddress];
         if (creatorContract == address(0)) revert CreatorNotFound();
-        return Creator(creatorContract).getContractBalance();
+        return Creator(payable(creatorContract)).getContractBalance();
     }
 
     function pauseCreator(address creatorAddress) external onlyOwner {
         address creatorContract = creatorContracts[creatorAddress];
         if (creatorContract == address(0)) revert CreatorNotFound();
-        Creator(creatorContract).pause();
+        Creator(payable(creatorContract)).pause();
     }
 
     function unpauseCreator(address creatorAddress) external onlyOwner {
         address creatorContract = creatorContracts[creatorAddress];
         if (creatorContract == address(0)) revert CreatorNotFound();
-        Creator(creatorContract).unpause();
+        Creator(payable(creatorContract)).unpause();
     }
 
     function pause() external onlyOwner {
@@ -119,6 +119,87 @@ contract CreatorFactory is Ownable, Pausable {
         if (!success) revert TransferFailed();
 
         emit FeesWithdrawn(balance);
+    }
+
+    function getCreators(uint256 offset, uint256 limit) external view returns (address[] memory, uint256) {
+        uint256 total = creators.length;
+        if (offset >= total) {
+            return (new address[](0), total);
+        }
+
+        uint256 size = total - offset;
+        if (size > limit) {
+            size = limit;
+        }
+
+        address[] memory result = new address[](size);
+        for (uint256 i = 0; i < size; i++) {
+            result[i] = creators[offset + i];
+        }
+
+        return (result, total);
+    }
+
+    struct DonationWithCreator {
+        address creator;
+        address donator;
+        uint96 amount;
+        string message;
+        uint32 timestamp;
+        bool isAccepted;
+        bool isBurned;
+    }
+
+    function getDonationsByDonator(address donator, uint256 offset, uint256 limit)
+        external
+        view
+        returns (DonationWithCreator[] memory result, uint256 total)
+    {
+        // First count total donations
+        total = 0;
+        for (uint256 i = 0; i < creators.length; i++) {
+            (, uint256 creatorTotal) = Creator(payable(creators[i])).getDonationsByDonator(donator, 0, 0);
+            total += creatorTotal;
+        }
+
+        if (total == 0 || offset >= total) {
+            return (new DonationWithCreator[](0), total);
+        }
+
+        // Calculate size of return array
+        uint256 size = total - offset;
+        if (size > limit) {
+            size = limit;
+        }
+
+        result = new DonationWithCreator[](size);
+        uint256 resultIndex = 0;
+        uint256 skipped = 0;
+
+        // Fill result array
+        for (uint256 i = 0; i < creators.length && resultIndex < size; i++) {
+            Creator creator = Creator(payable(creators[i]));
+            (Creator.Donation[] memory donations,) = creator.getDonationsByDonator(donator, 0, type(uint256).max);
+
+            for (uint256 j = 0; j < donations.length && resultIndex < size; j++) {
+                if (skipped < offset) {
+                    skipped++;
+                    continue;
+                }
+                result[resultIndex] = DonationWithCreator({
+                    creator: creators[i],
+                    donator: donations[j].donator,
+                    amount: donations[j].amount,
+                    message: donations[j].message,
+                    timestamp: donations[j].timestamp,
+                    isAccepted: donations[j].isAccepted,
+                    isBurned: donations[j].isBurned
+                });
+                resultIndex++;
+            }
+        }
+
+        return (result, total);
     }
 
     receive() external payable {}
